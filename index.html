@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>防災助手｜台灣離線防災避難、手冊問答與羅盤指引</title>
+  <meta name="description" content="防災助手（台灣離線版）— 開飛航模式、斷網時依然能查詢全台 22,359 筆避難與緊急據點、無地圖電子羅盤指引，以及內建官方防災手冊與 iPhone 本機 AI 問答。" />
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --surface: #14171d;
+      --surface-2: #1b2028;
+      --border: rgba(255, 255, 255, 0.09);
+      --text: #f3f5f8;
+      --muted: #9aa4b2;
+      --orange: #ff8c24;
+      --orange-soft: rgba(255, 140, 36, 0.14);
+      --blue: #61bfff;
+      --green: #38d399;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang TC", "Noto Sans TC", sans-serif;
+      background: radial-gradient(circle at 50% -10%, rgba(255, 140, 36, 0.14), transparent 45%), var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      background: rgba(11, 13, 16, 0.78);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text);
+    }
+    .brand-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--orange-soft);
+      border: 1px solid rgba(255, 140, 36, 0.45);
+      display: grid;
+      place-items: center;
+      color: var(--orange);
+      font-size: 15px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 18px;
+      font-size: 14px;
+      flex-wrap: wrap;
+    }
+    .nav-links a { color: var(--muted); }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+
+    .hero {
+      padding: 64px 0 44px;
+      text-align: center;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: var(--orange-soft);
+      border: 1px solid rgba(255, 140, 36, 0.35);
+      color: var(--orange);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    h1 {
+      margin: 0 0 14px;
+      font-size: clamp(32px, 5vw, 46px);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+    .hero p {
+      max-width: 680px;
+      margin: 0 auto 28px;
+      color: var(--muted);
+      font-size: 17px;
+    }
+    .cta-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 22px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 15px;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); text-decoration: none; }
+    .btn-primary {
+      background: var(--orange);
+      color: #111;
+    }
+    .btn-secondary {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .sub-note {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    section {
+      padding: 34px 0;
+    }
+    .section-title {
+      font-size: 22px;
+      margin: 0 0 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+      color: var(--text);
+    }
+    .card p, .card li {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .card ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+    .card li + li { margin-top: 6px; }
+    .tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--orange);
+      margin-bottom: 8px;
+    }
+
+    .changelog-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .version-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .version-badge {
+      background: rgba(56, 211, 153, 0.12);
+      color: var(--green);
+      border: 1px solid rgba(56, 211, 153, 0.35);
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .faq-list {
+      display: grid;
+      gap: 12px;
+    }
+    .faq-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+    }
+    .faq-item strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+      color: var(--text);
+    }
+    .faq-item p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .feedback-box {
+      background: linear-gradient(135deg, rgba(255, 140, 36, 0.1), rgba(97, 191, 255, 0.06));
+      border: 1px solid rgba(255, 140, 36, 0.28);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .feedback-box h3 { margin: 0 0 6px; font-size: 18px; }
+    .feedback-box p { margin: 0; color: var(--muted); font-size: 14px; max-width: 560px; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 0 44px;
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">
+        <div class="brand-badge">🛡</div>
+        <span>防災助手 · 開發者支援頁</span>
+      </div>
+      <nav class="nav-links">
+        <a href="#features">核心功能</a>
+        <a href="#changelog">更新進度</a>
+        <a href="#faq">常見問題</a>
+        <a href="#support">問題回報</a>
+        <a href="#privacy">隱私權政策</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="pill">
+        <span class="dot"></span>
+        <span>v0.9.0 Beta · 等待 TestFlight 外部測試審查</span>
+      </div>
+      <h1>斷電斷網時，仍能為你指引方向與自救步驟</h1>
+      <p>
+        災難發生的第一時間往往伴隨停電與基地台斷網。防災助手將台灣 22,359 筆避難與緊急據點、
+        離線防災資料和行動卡存於手機。支援 Apple Intelligence 並已完成模型設定的裝置，也可使用本機 AI 問答。
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://testflight.apple.com/join/uFRVGHEj" target="_blank" rel="noopener">
+          查看 TestFlight 測試狀態
+        </a>
+        <a class="btn btn-secondary" href="mailto:kqvfh2n9f2@privaterelay.appleid.com?subject=%E9%98%B2%E7%81%BD%E5%8A%A9%E6%89%8B%20Beta%20%E6%B8%AC%E8%A9%A6%E5%9B%9E%E5%A0%B1">
+          寄信回報問題 / 建議
+        </a>
+      </div>
+      <div class="sub-note">
+        外部測試開放後，先從 App Store 下載 TestFlight，再透過邀請連結安裝 v0.9.0 Beta。
+      </div>
+    </section>
+
+    <section id="features">
+      <h2 class="section-title">核心功能</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="tag">01 · 離線地標與羅盤</div>
+          <h3>22,359 筆台灣避難與民生據點</h3>
+          <p>
+            收錄政府機關、醫院、消防隊、警察局、學校、超商、超市、加油站與停車場，
+            支援「無地圖方向指引」電子羅盤，並可自訂預設聯動 Apple 地圖或 Google Maps 離線導航。
+          </p>
+        </div>
+        <div class="card">
+          <div class="tag">02 · 零延遲快查與本機 AI</div>
+          <h3>行動卡 ＋ iPhone 內建語言模型</h3>
+          <p>
+            遇到停電、斷水、地震、受傷或警報時，可依分類秒開處置步驟；
+            也能直接使用口語提問，透過裝置端 AI 快速檢索並附上官方手冊原文出處。
+          </p>
+        </div>
+        <div class="card">
+          <div class="tag">03 · 官方原典書庫</div>
+          <h3>四本核心安全手冊完全離線</h3>
+          <p>
+            內建《臺灣全民安全指引》與水利、消防、警政、台電相關防災資料，
+            無網路環境下依然能閱讀完整章節與原文出處。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="changelog">
+      <h2 class="section-title">開發進度與版本紀錄</h2>
+      <div class="card changelog-item">
+        <div class="version-header">
+          <strong>v0.9.0 (Build 3) — 首次外部 Beta 測試</strong>
+          <span class="version-badge">已提交 TestFlight</span>
+        </div>
+        <ul>
+          <li>新增「預設離線地圖服務」設定，可自由切換 Apple 地圖或 Google Maps 聯動導航。</li>
+          <li>優化「無地圖方向指引」羅盤介面，單一螢幕即可完整顯示方位、距離、航向與操作按鈕。</li>
+          <li>更新啟動快速導覽與「作者的話」，加入 iPhone 本機 AI 說明與一致的地圖高亮樣式。</li>
+          <li>內建台灣 22,359 筆離線 POI 與 4 本官方防災手冊全文檢索資料庫。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="faq">
+      <h2 class="section-title">測試員常見問題（FAQ）</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <strong>1. TestFlight 連結點進去顯示「目前不再接受新的測試人員」？</strong>
+          <p>外部測試須等 Apple 審查通過，並由開發者開放邀請。若連結暫時無法加入，請稍後再試。</p>
+        </div>
+        <div class="faq-item">
+          <strong>2. 平時該先做什麼準備，才能在斷網時發揮最大效果？</strong>
+          <p>建議先到「設定 → 離線地圖服務」選擇習慣的地圖（Apple 地圖或 Google Maps），並在該地圖 App 內預先下載居住與常用縣市的離線圖資，再試著開飛航模式測試一次。</p>
+        </div>
+        <div class="faq-item">
+          <strong>3. 為什麼「設定」無法自動顯示我是否已經下載好離線地圖？</strong>
+          <p>基於 iOS 系統沙盒與隱私保護，第三方 App 無法讀取 Apple 地圖或 Google Maps 內部的離線下載狀態，需透過設定頁的按鈕自行開啟地圖 App 確認。</p>
+        </div>
+        <div class="faq-item">
+          <strong>4. 支援哪些裝置與系統？</strong>
+          <p>本 Beta 版需要 iOS 26.4 或更新版本。本機 AI 問答另需支援並啟用 Apple Intelligence。允許使用期間定位後，可顯示附近據點距離與方向。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="support">
+      <h2 class="section-title">問題回報與意見回饋</h2>
+      <div class="feedback-box">
+        <div>
+          <h3>協助我們把防災助手做得更穩定</h3>
+          <p>
+            歡迎在 TestFlight App 內直接截圖回報，或來信說明你遇到的機型、系統版本、操作畫面與建議。
+            回報時請只附上重現問題所需的資訊。
+          </p>
+        </div>
+        <a class="btn btn-primary" href="mailto:kqvfh2n9f2@privaterelay.appleid.com?subject=%E9%98%B2%E7%81%BD%E5%8A%A9%E6%89%8B%20%E5%95%8F%E9%A1%8C%E5%9B%9E%E5%A0%B1">
+          聯絡開發者
+        </a>
+      </div>
+    </section>
+
+    <section id="privacy">
+      <h2 class="section-title">隱私權政策（Privacy Policy）</h2>
+      <div class="card">
+        <p>
+          本政策適用於防災助手（tw.eddylo.disasterassistant）。更新日期為 2026 年 11 月 17 日。
+        </p>
+        <ul>
+          <li><strong>App 使用與本機 AI</strong>。App 無需建立帳號。搜尋、行動卡與 AI 問答在裝置上處理，App 不會將問句傳到開發者伺服器或雲端 AI。</li>
+          <li><strong>定位與地圖</strong>。允許定位後，App 會在本機用 GPS 與羅盤計算附近據點距離及方位，也可判定所在行政區。點選地圖搜尋或導航時，App 會把搜尋詞或目的地交給你選擇的地圖服務，由該服務依自己的隱私政策處理。</li>
+          <li><strong>本機紀錄</strong>。查詢歷史、防災清單、書籤與偏好設定保存在裝置上。你可在 App 設定清除查詢紀錄，也可在防災清單中重設勾選項目。</li>
+          <li><strong>下載與外部連結</strong>。下載手冊、資料包或開啟外部連結時，裝置會連線至相應網站。離線閱讀已下載資料時可使用本機副本。</li>
+          <li><strong>主動提供的回饋</strong>。透過電子郵件或 TestFlight 提交回饋時，開發者可能收到你提供的聯絡資訊、文字、截圖或測試資料，用於回覆及排查問題。</li>
+          <li><strong>聯絡開發者</strong>：如對本隱私權政策有任何疑問，請來信至 <a href="mailto:kqvfh2n9f2@privaterelay.appleid.com">kqvfh2n9f2@privaterelay.appleid.com</a>。</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container">
+    <span>© 2026 Eddy Lo · 防災助手（tw.eddylo.disasterassistant）</span>
+    <span>聯絡信箱：<a href="mailto:kqvfh2n9f2@privaterelay.appleid.com">kqvfh2n9f2@privaterelay.appleid.com</a></span>
+  </footer>
+</body>
+</html>
